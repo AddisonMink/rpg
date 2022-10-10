@@ -10,6 +10,16 @@ enum Species(
     val weapon: Weapon
 ):
 
+  case Goon(
+      override val name: String = "goon",
+      override val team: Team = Team.Players,
+      override val maxHp: Int = 100,
+      override val size: Size = Size.Medium,
+      override val strength: Int = 10,
+      override val actionCost: Int = 100,
+      override val weapon: Weapon
+  ) extends Species(name, team, maxHp, size, strength, actionCost, weapon)
+
   case Fighter(
       override val weapon: Weapon
   ) extends Species(

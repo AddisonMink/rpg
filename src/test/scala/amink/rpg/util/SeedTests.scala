@@ -30,6 +30,7 @@ class SeedTests extends AnyFlatSpecLike with Matchers {
   behavior of "int(min,max)"
 
   it should "return a number in [min,max]" in {
+    Cycle(List(1)).int(1, 2) shouldBe 2
     Cycle(List(3)).int(5, 10) shouldBe 8
     Cycle(List(0)).int(5, 10) shouldBe 5
     Cycle(List(5)).int(5, 10) shouldBe 10
