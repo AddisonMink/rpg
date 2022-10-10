@@ -19,9 +19,8 @@ enum Seed:
     case Cycle(Nil)    => 0
 
   def int(min: Int, max: Int): Int = this match
-    case Rand(seed)    => int(max - min) + min
-    case Cycle(v :: _) => int(max - min) + min
-    case Cycle(Nil)    => 0
+    case Rand(_)   => int(max - min) + min
+    case Cycle(_) => int(max - min) + min
 
 object Seed:
   def seedResultingIn(min: Int, max: Int, result: Int): Int =
