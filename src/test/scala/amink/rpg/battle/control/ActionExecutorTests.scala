@@ -8,7 +8,7 @@ import amink.rpg.battle.model.*
 
 class ActionExecutorTests extends AnyFlatSpecLike with Matchers:
 
-  val goon = Species.Goon(
+  val goon: Species.Goon = Species.Goon(
     name = "goon",
     team = Team.Players,
     maxHp = 100,
@@ -23,6 +23,8 @@ class ActionExecutorTests extends AnyFlatSpecLike with Matchers:
       actionCostMultiplier = 1.5
     )
   )
+
+  val monsterGoon = goon.copy(team = Team.Monsters)
 
   behavior of "attack"
 
@@ -77,4 +79,64 @@ class ActionExecutorTests extends AnyFlatSpecLike with Matchers:
     result.creatureMap(2).hp shouldBe target.hp - damage
     result.creatureMap(2).state shouldBe CreatureState.Dead
     result.logs shouldBe List(attackLog, damageLog, deathLog)
+  }
+
+  behavior of "move"
+
+  it should "move from front to back" in {
+    // Set up initial state.
+    val creature = Creature.make(1, "1", goon, Row.Front)
+    val other = creature.copy(id = 2, "2", row = Row.Back)
+    val creatureMap = Map(1 -> creature, 2 -> other)
+    val action = Action.Move(1, Direction.Back)
+
+    // Expected values.
+    val moveLog = Log.MoveLog(creature, Direction.Back)
+    val apCost = 100
+
+    // Test
+    val result = ActionExecutor.execute(creatureMap, action, Seed.Cycle(Nil))
+    result.creatureMap(1).nextActionAt shouldBe creature.nextActionAt + apCost
+    result.creatureMap(1).row shouldBe Row.Back
+    result.creatureMap(2).row shouldBe other.row
+    result.logs shouldBe List(moveLog)
+  }
+
+  it should "move from back to front" in {
+    // Set up initial state.
+    val creature = Creature.make(1, "1", goon, Row.Back)
+    val other = creature.copy(id = 2, "2", row = Row.Back)
+    val creatureMap = Map(1 -> creature, 2 -> other)
+    val action = Action.Move(1, Direction.Forward)
+
+    // Expected values.
+    val moveLog = Log.MoveLog(creature, Direction.Forward)
+    val apCost = 100
+
+    // Test
+    val result = ActionExecutor.execute(creatureMap, action, Seed.Cycle(Nil))
+    result.creatureMap(1).nextActionAt shouldBe creature.nextActionAt + apCost
+    result.creatureMap(1).row shouldBe Row.Front
+    result.creatureMap(2).row shouldBe other.row
+    result.logs shouldBe List(moveLog)
+  }
+
+  it should "trigger a row reset if moving forward from font row" in {
+    // Set up initial state.
+    val creature = Creature.make(1, "1", goon, Row.Front)
+    val other =
+      creature.copy(id = 2, "2", row = Row.Back, species = monsterGoon)
+    val creatureMap = Map(1 -> creature, 2 -> other)
+    val action = Action.Move(1, Direction.Forward)
+
+    // Expected values.
+    val moveLog = Log.MoveLog(creature, Direction.Forward)
+    val apCost = 100
+
+    // Test
+    val result = ActionExecutor.execute(creatureMap, action, Seed.Cycle(Nil))
+    result.creatureMap(1).nextActionAt shouldBe creature.nextActionAt + apCost
+    result.creatureMap(1).row shouldBe Row.Front
+    result.creatureMap(2).row shouldBe Row.Front
+    result.logs shouldBe List(moveLog)
   }

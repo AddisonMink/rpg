@@ -4,6 +4,7 @@ enum Log:
   case AttackLog(attacker: Creature, weapon: Weapon)
   case DamageLog(creature: Creature, amount: Int)
   case DeathLog(creature: Creature)
+  case MoveLog(creature: Creature, direction: Direction)
   case WaitLog(creature: Creature)
   case ShoveLog(shover: Creature, target: Creature, success: Boolean)
 
@@ -14,6 +15,11 @@ enum Log:
       s"${creature.name} takes $amount damage"
     case DeathLog(creature) =>
       s"${creature.name} died"
+    case MoveLog(creature, direction) =>
+      val dir = direction match
+        case Direction.Forward => "forward"
+        case Direction.Back    => "back"
+      s"${creature.name} moved $dir"
     case WaitLog(creature) =>
       s"${creature.name} waited"
     case ShoveLog(shover, target, true) =>
