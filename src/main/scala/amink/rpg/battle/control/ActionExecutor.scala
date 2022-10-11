@@ -31,7 +31,7 @@ object ActionExecutor {
     case Attack(id, targetId, weapon) => attack(id, targetId, weapon)
     case Move(id, direction)          => move(id, direction)
     case Shove(shoverId, targetId)    => shove(shoverId, targetId)
-    case Wait(id)                     => ???
+    case Wait(id)                     => wait(id)
 
   private def attack(id: Id, targetId: Id, weapon: Weapon): Executor[Unit] =
     for {
@@ -91,6 +91,12 @@ object ActionExecutor {
           _ <- rowReset(shover.species.team.opposite)
         } yield ()
       else pure(())
+  } yield ()
+
+  private def wait(id: Id): Executor[Unit] = for {
+    creature <- inspect(_(id))
+    _ <- tell(WaitLog(creature))
+    _ <- modifyCreature(id)(nextActionAt = _ + creature.species.actionCost / 4)
   } yield ()
 
   private def damage(id: Id, amount: Int): Executor[Unit] = for {

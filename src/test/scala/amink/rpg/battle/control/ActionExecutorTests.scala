@@ -190,3 +190,21 @@ class ActionExecutorTests extends AnyFlatSpecLike with Matchers:
     result.creatureMap(3).row shouldBe Row.Back
     result.logs shouldBe List(shoveLog)
   }
+
+  behavior of "wait"
+
+  it should "log the wait and adjust nextActionAt" in {
+    // Set up initial state.
+    val creature = Creature.make(1, "1", goon, Row.Front)
+    val creatureMap = Map(1 -> creature)
+    val action = Action.Wait(1)
+
+    // Expected values.
+    val waitLog = Log.WaitLog(creature)
+    val apCost = 25
+
+    // Test
+    val result = ActionExecutor.execute(creatureMap, action, Seed.Cycle(Nil))
+    result.creatureMap(1).nextActionAt shouldBe creature.nextActionAt + apCost
+    result.logs shouldBe List(waitLog)
+  }
