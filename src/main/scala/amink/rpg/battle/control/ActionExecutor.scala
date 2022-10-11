@@ -30,7 +30,7 @@ object ActionExecutor {
   private def executor(action: Action): Executor[Unit] = action match
     case Attack(id, targetId, weapon) => attack(id, targetId, weapon)
     case Move(id, direction)          => move(id, direction)
-    case Shove(shoverId, targetId)    => ???
+    case Shove(shoverId, targetId)    => shove(shoverId, targetId)
     case Wait(id)                     => ???
 
   private def attack(id: Id, targetId: Id, weapon: Weapon): Executor[Unit] =
@@ -73,6 +73,24 @@ object ActionExecutor {
         rowReset(creature.species.team.opposite)
       case _ =>
         pure(())
+  } yield ()
+
+  private def shove(shoverId: Id, targetId: Id): Executor[Unit] = for {
+    shover <- inspect(_(shoverId))
+    target <- inspect(_(targetId))
+    shoverRoll <- rollDice(shover.species.strength, 2)
+    targetRoll <- rollDice(target.species.strength, 2)
+    success = shoverRoll > targetRoll
+    _ <- tell(ShoveLog(shover, target, success))
+    _ <- modifyCreature(shoverId)(nextActionAt = _ + shover.species.actionCost)
+
+    _ <-
+      if success then
+        for {
+          _ <- modifyCreature(targetId)(row = _ => Row.Back)
+          _ <- rowReset(shover.species.team.opposite)
+        } yield ()
+      else pure(())
   } yield ()
 
   private def damage(id: Id, amount: Int): Executor[Unit] = for {

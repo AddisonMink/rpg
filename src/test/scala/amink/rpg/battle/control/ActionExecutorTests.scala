@@ -140,3 +140,53 @@ class ActionExecutorTests extends AnyFlatSpecLike with Matchers:
     result.creatureMap(2).row shouldBe Row.Front
     result.logs shouldBe List(moveLog)
   }
+
+  behavior of "shove"
+
+  it should "move the target back and trigger a row reset if the shover wins the strength roll" in {
+    // Set up initial state.
+    val creature = Creature.make(1, "1", goon, Row.Front)
+    val other =
+      creature.copy(id = 2, "2", row = Row.Front, species = monsterGoon)
+    val other3 = other.copy(id = 3, "2", row = Row.Back)
+    val creatureMap = Map(1 -> creature, 2 -> other, 3 -> other3)
+    val action = Action.Shove(1, 2)
+
+    // Expected values.
+    val shoveLog = Log.ShoveLog(creature, other, true)
+    val apCost = 100
+
+    val seed =
+      Seed.Cycle(List.fill(goon.strength)(1) ++ List.fill(goon.strength)(0))
+
+    // Test
+    val result = ActionExecutor.execute(creatureMap, action, seed)
+    result.creatureMap(1).nextActionAt shouldBe creature.nextActionAt + apCost
+    result.creatureMap(2).row shouldBe Row.Front
+    result.creatureMap(3).row shouldBe Row.Front
+    result.logs shouldBe List(shoveLog)
+  }
+
+  it should "not move the target if the shover loses the strength roll" in {
+    // Set up initial state.
+    val creature = Creature.make(1, "1", goon, Row.Front)
+    val other =
+      creature.copy(id = 2, "2", row = Row.Front, species = monsterGoon)
+    val other3 = other.copy(id = 3, "2", row = Row.Back)
+    val creatureMap = Map(1 -> creature, 2 -> other, 3 -> other3)
+    val action = Action.Shove(1, 2)
+
+    // Expected values.
+    val shoveLog = Log.ShoveLog(creature, other, false)
+    val apCost = 100
+
+    val seed =
+      Seed.Cycle(List.fill(goon.strength)(0) ++ List.fill(goon.strength)(1))
+
+    // Test
+    val result = ActionExecutor.execute(creatureMap, action, seed)
+    result.creatureMap(1).nextActionAt shouldBe creature.nextActionAt + apCost
+    result.creatureMap(2).row shouldBe Row.Front
+    result.creatureMap(3).row shouldBe Row.Back
+    result.logs shouldBe List(shoveLog)
+  }
