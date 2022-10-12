@@ -114,7 +114,6 @@ object ActionExecutor {
 
   private def rowReset(team: Team): Executor[Unit] = for {
     creatures <- inspect(_.team(team))
-    _ = println(creatures)
     _ <-
       if creatures.exists(_.row == Row.Front) then pure(Nil)
       else
