@@ -14,6 +14,7 @@ class MessageExecutorTests extends AnyFlatSpecLike with Matchers:
 
   private val seed = Seed.Cycle(Nil)
   private val playerActions = PlayerAction.values.toList
+  private val directions = Direction.values.toList
   private val fighter = Species.Fighter(Weapon("", Range.Close, 1, 0, 1))
 
   behavior of "selectingAction"
@@ -116,6 +117,34 @@ class MessageExecutorTests extends AnyFlatSpecLike with Matchers:
       SelectingMonster(seed, creatureMap, 0, PlayerAction.Attack, List(1), 0)
 
     val (actual, cmd) = MessageExecutor.execute(state, Confirm)
+
+    actual shouldBe expected
+    cmd shouldBe Render
+  }
+
+  behavior of "selectingDirection"
+
+  it should "on Confirm, transition to ExecutingAction" in {
+    val index = directions.indexOf(Direction.Forward)
+
+    val state =
+      SelectingDirection(seed, Map(), 0, PlayerAction.Move, directions, index)
+
+    val action = Action.Move(0, Direction.Forward)
+    val expected = ExecutingAction(seed, Map(), action)
+
+    val (actual, cmd) = MessageExecutor.execute(state, Confirm)
+
+    actual shouldBe expected
+    cmd shouldBe Send(ExecuteAction)
+  }
+
+  it should "on Cancel, transition to SelectingAction" in {
+    val state = SelectingDirection(seed, Map(), 0, PlayerAction.Move, Nil, 0)
+
+    val expected = SelectingAction(seed, Map(), 0, playerActions, 0)
+
+    val (actual, cmd) = MessageExecutor.execute(state, Cancel)
 
     actual shouldBe expected
     cmd shouldBe Render
