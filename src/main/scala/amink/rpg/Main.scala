@@ -16,12 +16,17 @@ import amink.canvasui.*
 
   val model = {
     import battle.model.*
-    Creature.make(0, "1", Species.Goblin, Row.Back)
+    import util.*
+    val weapon = Species.goblinBow
+    val player1 = Creature.make(0, "1", Species.Fighter(weapon), Row.Front)
+    val player2 = Creature.make(1, "2", Species.Fighter(weapon), Row.Back)
+    val cMap = Map(0 -> player1, 1 -> player2)
+    State.Won(Seed.Cycle(Nil), cMap)
   }
 
   val view = {
     import battle.view.*
-    PlayerView(model)
+    View.make(model)
   }
 
   val component = view.component
