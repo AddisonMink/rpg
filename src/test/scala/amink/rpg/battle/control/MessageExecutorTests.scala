@@ -1,5 +1,7 @@
 package amink.rpg.battle.control
 
+import monocle.syntax.all.*
+
 import org.scalatest.flatspec.AnyFlatSpecLike
 import org.scalatest.matchers.should.Matchers
 
@@ -165,4 +167,85 @@ class MessageExecutorTests extends AnyFlatSpecLike with Matchers:
 
     actual shouldBe expected
     cmd shouldBe Send(ExecuteAction)
+  }
+
+  behavior of "executingAction"
+
+  it should "on ExecuteAction execute the action and transition to SelectingAction if the next turn is a player turn." in {
+    val player = Creature.make(0, "1", fighter, Row.Front)
+
+    val monster = Creature
+      .make(1, "1", Species.Goblin, Row.Back)
+      .copy(nextActionAt = 1000)
+
+    val creatureMap = Map(0 -> player, 1 -> monster)
+    val action = Action.Wait(0)
+    val state: ExecutingAction = ExecutingAction(seed, creatureMap, action)
+
+    val expectedCMap = state.creatureMap
+      .focus(_.index(0).nextActionAt)
+      .modify(_ + 25)
+
+    val expected: SelectingAction =
+      SelectingAction(seed, expectedCMap, 0, playerActions, 0)
+
+    val (actual, cmd) = MessageExecutor.execute(state, ExecuteAction)
+
+    actual shouldBe expected
+    cmd shouldBe Render
+  }
+
+  it should "on ExecuteAction execute the action and transition to MonsterActing if the next run is a monster turn." in {
+    val player = Creature.make(0, "1", fighter, Row.Front)
+    val monster = Creature.make(1, "1", Species.Goblin, Row.Back)
+    val creatureMap = Map(0 -> player, 1 -> monster)
+    val action = Action.Wait(0)
+    val state: ExecutingAction = ExecutingAction(seed, creatureMap, action)
+
+    val expectedCMap = state.creatureMap
+      .focus(_.index(0).nextActionAt)
+      .modify(_ + 25)
+
+    val expected: MonsterActing = MonsterActing(seed, expectedCMap, 1)
+
+    val (actual, cmd) = MessageExecutor.execute(state, ExecuteAction)
+
+    actual shouldBe expected
+    cmd shouldBe Send(MonsterAct)
+  }
+
+  it should "on ExecuteAction execute the action and transition to Lost if there are no living players" in {
+    val monster = Creature.make(0, "1", Species.Goblin, Row.Back)
+    val creatureMap = Map(0 -> monster)
+    val action = Action.Wait(0)
+    val state: ExecutingAction = ExecutingAction(seed, creatureMap, action)
+
+    val expectedCMap = state.creatureMap
+      .focus(_.index(0).nextActionAt)
+      .modify(_ + 12)
+
+    val expected: Lost = Lost(seed, expectedCMap)
+
+    val (actual, cmd) = MessageExecutor.execute(state, ExecuteAction)
+
+    actual shouldBe expected
+    cmd shouldBe Render
+  }
+
+  it should "on ExecuteAction execute the action and transition to Won if there are no living monsters" in {
+    val player = Creature.make(0, "1", fighter, Row.Front)
+    val creatureMap = Map(0 -> player)
+    val action = Action.Wait(0)
+    val state: ExecutingAction = ExecutingAction(seed, creatureMap, action)
+
+    val expectedCMap = state.creatureMap
+      .focus(_.index(0).nextActionAt)
+      .modify(_ + 25)
+
+    val expected: Won = Won(seed, expectedCMap)
+
+    val (actual, cmd) = MessageExecutor.execute(state, ExecuteAction)
+
+    actual shouldBe expected
+    cmd shouldBe Render
   }

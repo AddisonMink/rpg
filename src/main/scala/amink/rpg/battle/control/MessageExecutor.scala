@@ -14,7 +14,7 @@ object MessageExecutor:
       case s: SelectingDirection => selectingDirection(s, message)
       case s: SelectingMonster   => selectingMonster(s, message)
       case s: MonsterActing      => monsterActing(s, message)
-      case s: ExecutingAction    => ???
+      case s: ExecutingAction    => executingAction(s, message)
       case s: Logging            => ???
       case s: Won                => ???
       case s: Lost               => ???
@@ -90,6 +90,26 @@ object MessageExecutor:
 
       case _ => (s, Noop)
 
+  private def executingAction(
+      s: ExecutingAction,
+      msg: Message
+  ): (State, Command[Message]) =
+    msg match
+      case ExecuteAction =>
+        val result = ActionExecutor.execute(s.creatureMap, s.action, s.seed)
+        val newS = s.copy(seed = result.seed, creatureMap = result.creatureMap)
+        val lost = newS.creatureMap.players.isEmpty
+        val won = newS.creatureMap.monsters.isEmpty
+        lazy val next = newS.creatureMap.queue.head
+
+        if lost then transitionToLost(newS)
+        else if won then transitionToWon(newS)
+        else if next.species.team == Team.Players then
+          transitionToSelectingAction(newS, next.id)
+        else transitionToMonsterActing(newS, next.id)
+
+      case _ => (s, Noop)
+
   private def transitionToSelectingAction(
       s: State,
       id: Id
@@ -125,3 +145,18 @@ object MessageExecutor:
   ): (State, Command[Message]) =
     val state = ExecutingAction(s.seed, s.creatureMap, a)
     (state, Send(ExecuteAction))
+
+  private def transitionToMonsterActing(
+      s: State,
+      id: Id
+  ): (State, Command[Message]) =
+    val state = MonsterActing(s.seed, s.creatureMap, id)
+    (state, Send(MonsterAct))
+
+  private def transitionToLost(s: State): (State, Command[Message]) =
+    val state = Lost(s.seed, s.creatureMap)
+    (state, Render)
+
+  private def transitionToWon(s: State): (State, Command[Message]) =
+    val state = Won(s.seed, s.creatureMap)
+    (state, Render)

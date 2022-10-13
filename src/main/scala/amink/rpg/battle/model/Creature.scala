@@ -19,6 +19,7 @@ extension (c: CreatureMap)
   def creatures: List[Creature] = c.values.toList.filter(_.state.isAlive)
   def players: List[Creature] = creatures.filter(_.species.team.isPlayer)
   def monsters: List[Creature] = creatures.filter(_.species.team.isMonster)
+  def queue: List[Creature] = creatures.sortBy(_.nextActionAt)
 
   def team(team: Team): List[Creature] =
     creatures.filter(_.species.team == team)
