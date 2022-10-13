@@ -15,9 +15,9 @@ object MessageExecutor:
       case s: SelectingMonster   => selectingMonster(s, message)
       case s: MonsterActing      => monsterActing(s, message)
       case s: ExecutingAction    => executingAction(s, message)
-      case s: Logging            => ???
-      case s: Won                => ???
-      case s: Lost               => ???
+      case s: Logging            => logging(s, message)
+      case s: Won                => (s, Noop)
+      case s: Lost               => (s, Noop)
 
   private def selectingAction(
       s: SelectingAction,
@@ -97,18 +97,31 @@ object MessageExecutor:
     msg match
       case ExecuteAction =>
         val result = ActionExecutor.execute(s.creatureMap, s.action, s.seed)
-        val newS = s.copy(seed = result.seed, creatureMap = result.creatureMap)
-        val lost = newS.creatureMap.players.isEmpty
-        val won = newS.creatureMap.monsters.isEmpty
-        lazy val next = newS.creatureMap.queue.head
-
-        if lost then transitionToLost(newS)
-        else if won then transitionToWon(newS)
-        else if next.species.team == Team.Players then
-          transitionToSelectingAction(newS, next.id)
-        else transitionToMonsterActing(newS, next.id)
+        val state = Logging(result.seed, result.creatureMap, result.logs)
+        (state, Render)
 
       case _ => (s, Noop)
+
+  private def logging(
+      s: Logging,
+      msg: Message
+  ): (State, Command[Message]) =
+    msg match
+      case Confirm => transitionToNextTurn(s)
+      case _       => (s, Noop)
+
+  private def transitionToNextTurn(
+      s: State
+  ): (State, Command[Message]) =
+    val lost = s.creatureMap.players.isEmpty
+    val won = s.creatureMap.monsters.isEmpty
+    lazy val next = s.creatureMap.queue.head
+    lazy val playerTurn = next.species.team == Team.Players
+
+    if lost then transitionToLost(s)
+    else if won then transitionToWon(s)
+    else if playerTurn then transitionToSelectingAction(s, next.id)
+    else transitionToMonsterActing(s, next.id)
 
   private def transitionToSelectingAction(
       s: State,
