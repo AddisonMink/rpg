@@ -13,7 +13,7 @@ object MessageExecutor:
       case s: SelectingAction    => selectingAction(s, message)
       case s: SelectingDirection => selectingDirection(s, message)
       case s: SelectingMonster   => selectingMonster(s, message)
-      case s: MonsterActing      => ???
+      case s: MonsterActing      => monsterActing(s, message)
       case s: ExecutingAction    => ???
       case s: Logging            => ???
       case s: Won                => ???
@@ -73,6 +73,20 @@ object MessageExecutor:
         val monsterId = s.monsters(s.index)
         val action = s.action.toMonsterTargetingAction(s.id, monsterId)
         transitionToExecutingAction(s, action)
+
+      case _ => (s, Noop)
+
+  private def monsterActing(
+      s: MonsterActing,
+      msg: Message
+  ): (State, Command[Message]) =
+    msg match
+      case MonsterAct =>
+        val (seed, action) =
+          MonsterBehavior.selectAction(s.creatureMap, s.id, s.seed)
+
+        val state = s.copy(seed = seed)
+        transitionToExecutingAction(state, action)
 
       case _ => (s, Noop)
 

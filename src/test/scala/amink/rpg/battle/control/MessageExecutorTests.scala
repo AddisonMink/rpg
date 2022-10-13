@@ -149,3 +149,20 @@ class MessageExecutorTests extends AnyFlatSpecLike with Matchers:
     actual shouldBe expected
     cmd shouldBe Render
   }
+
+  behavior of "monsterActing"
+
+  it should "on MonsterAct select an action for the monster and transition to ExecutingAction" in {
+    val player = Creature.make(0, "1", fighter, Row.Front)
+    val monster = Creature.make(1, "1", Species.Goblin, Row.Back)
+    val creatureMap = Map(0 -> player, 1 -> monster)
+    val state: MonsterActing = MonsterActing(seed, creatureMap, 1)
+
+    val action = Action.Attack(1, 0, Species.goblinBow)
+    val expected: ExecutingAction = ExecutingAction(seed, creatureMap, action)
+
+    val (actual, cmd) = MessageExecutor.execute(state, MonsterAct)
+
+    actual shouldBe expected
+    cmd shouldBe Send(ExecuteAction)
+  }
