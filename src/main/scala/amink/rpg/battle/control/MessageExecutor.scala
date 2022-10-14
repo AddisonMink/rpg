@@ -97,7 +97,8 @@ object MessageExecutor:
     msg match
       case ExecuteAction =>
         val result = ActionExecutor.execute(s.creatureMap, s.action, s.seed)
-        val state = Logging(result.seed, result.creatureMap, result.logs)
+        val state =
+          Logging(result.seed, result.creatureMap, s.sprites, result.logs)
         (state, Render)
 
       case _ => (s, Noop)
@@ -128,7 +129,8 @@ object MessageExecutor:
       id: Id
   ): (State, Command[Message]) =
     val actions = PlayerAction.values.toList
-    val state = SelectingAction(s.seed, s.creatureMap, id, actions, 0)
+    val state =
+      SelectingAction(s.seed, s.creatureMap, s.sprites, id, actions, 0)
     (state, Render)
 
   private def transitionToSelectingMonster(
@@ -140,7 +142,8 @@ object MessageExecutor:
     val monsters = range match
       case Some(r) => s.creatureMap.validTargets(id, r)
       case None    => s.creatureMap.validWeaponTargets(id)
-    val state = SelectingMonster(s.seed, s.creatureMap, id, a, monsters, 0)
+    val state =
+      SelectingMonster(s.seed, s.creatureMap, s.sprites, id, a, monsters, 0)
     (state, Render)
 
   private def transitionToSelectingDirection(
@@ -149,27 +152,28 @@ object MessageExecutor:
       id: Id
   ): (State, Command[Message]) =
     val dirs = s.creatureMap.validDirections(id)
-    val state = SelectingDirection(s.seed, s.creatureMap, id, a, dirs, 0)
+    val state =
+      SelectingDirection(s.seed, s.creatureMap, s.sprites, id, a, dirs, 0)
     (state, Render)
 
   private def transitionToExecutingAction(
       s: State,
       a: Action
   ): (State, Command[Message]) =
-    val state = ExecutingAction(s.seed, s.creatureMap, a)
+    val state = ExecutingAction(s.seed, s.creatureMap, s.sprites, a)
     (state, Send(ExecuteAction))
 
   private def transitionToMonsterActing(
       s: State,
       id: Id
   ): (State, Command[Message]) =
-    val state = MonsterActing(s.seed, s.creatureMap, id)
+    val state = MonsterActing(s.seed, s.creatureMap, s.sprites, id)
     (state, Send(MonsterAct))
 
   private def transitionToLost(s: State): (State, Command[Message]) =
-    val state = Lost(s.seed, s.creatureMap)
+    val state = Lost(s.seed, s.creatureMap, s.sprites)
     (state, Render)
 
   private def transitionToWon(s: State): (State, Command[Message]) =
-    val state = Won(s.seed, s.creatureMap)
+    val state = Won(s.seed, s.creatureMap, s.sprites)
     (state, Render)

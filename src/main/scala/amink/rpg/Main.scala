@@ -21,7 +21,7 @@ import amink.canvasui.*
     val player1 = Creature.make(0, "1", Species.Fighter(weapon), Row.Front)
     val player2 = Creature.make(1, "2", Species.Fighter(weapon), Row.Back)
     val cMap = Map(0 -> player1, 1 -> player2)
-    State.Won(Seed.Cycle(Nil), cMap)
+    State.Won(Seed.Cycle(Nil), cMap, Map())
   }
 
   val view = {

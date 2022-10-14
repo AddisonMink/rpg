@@ -23,7 +23,7 @@ class MessageExecutorTests extends AnyFlatSpecLike with Matchers:
 
   it should "on Up, scroll actions up" in {
     val state: SelectingAction =
-      SelectingAction(seed, Map(), 0, playerActions, 0)
+      SelectingAction(seed, Map(), Map(), 0, playerActions, 0)
 
     val expected1 = state.copy(index = playerActions.length - 1)
     val expected2 = state.copy(index = playerActions.length - 2)
@@ -39,7 +39,14 @@ class MessageExecutorTests extends AnyFlatSpecLike with Matchers:
 
   it should "on Down, scroll actions down" in {
     val state: SelectingAction =
-      SelectingAction(seed, Map(), 0, playerActions, playerActions.length - 1)
+      SelectingAction(
+        seed,
+        Map(),
+        Map(),
+        0,
+        playerActions,
+        playerActions.length - 1
+      )
 
     val expected1 = state.copy(index = 0)
     val expected2 = state.copy(index = 1)
@@ -57,9 +64,9 @@ class MessageExecutorTests extends AnyFlatSpecLike with Matchers:
     val index = playerActions.indexOf(PlayerAction.Wait)
 
     val state: SelectingAction =
-      SelectingAction(seed, Map(), 0, playerActions, index)
+      SelectingAction(seed, Map(), Map(), 0, playerActions, index)
 
-    val expected = ExecutingAction(seed, Map(), Action.Wait(0))
+    val expected = ExecutingAction(seed, Map(), Map(), Action.Wait(0))
 
     val (actual, cmd) = MessageExecutor.execute(state, Confirm)
 
@@ -72,12 +79,13 @@ class MessageExecutorTests extends AnyFlatSpecLike with Matchers:
     val creature = Creature.make(0, "1", Species.Goblin, Row.Front)
 
     val state: SelectingAction =
-      SelectingAction(seed, Map(0 -> creature), 0, playerActions, index)
+      SelectingAction(seed, Map(0 -> creature), Map(), 0, playerActions, index)
 
     val expected: SelectingDirection =
       SelectingDirection(
         seed,
         Map(0 -> creature),
+        Map(),
         0,
         PlayerAction.Move,
         List(Direction.Forward, Direction.Back),
@@ -96,10 +104,18 @@ class MessageExecutorTests extends AnyFlatSpecLike with Matchers:
     val monster = Creature.make(1, "1", Species.Goblin, Row.Front)
     val creatureMap = Map(0 -> player, 1 -> monster)
     val state: SelectingAction =
-      SelectingAction(seed, creatureMap, 0, playerActions, index)
+      SelectingAction(seed, creatureMap, Map(), 0, playerActions, index)
 
     val expected: SelectingMonster =
-      SelectingMonster(seed, creatureMap, 0, PlayerAction.Shove, List(1), 0)
+      SelectingMonster(
+        seed,
+        creatureMap,
+        Map(),
+        0,
+        PlayerAction.Shove,
+        List(1),
+        0
+      )
 
     val (actual, cmd) = MessageExecutor.execute(state, Confirm)
 
@@ -113,10 +129,18 @@ class MessageExecutorTests extends AnyFlatSpecLike with Matchers:
     val monster = Creature.make(1, "1", Species.Goblin, Row.Front)
     val creatureMap = Map(0 -> player, 1 -> monster)
     val state: SelectingAction =
-      SelectingAction(seed, creatureMap, 0, playerActions, index)
+      SelectingAction(seed, creatureMap, Map(), 0, playerActions, index)
 
     val expected: SelectingMonster =
-      SelectingMonster(seed, creatureMap, 0, PlayerAction.Attack, List(1), 0)
+      SelectingMonster(
+        seed,
+        creatureMap,
+        Map(),
+        0,
+        PlayerAction.Attack,
+        List(1),
+        0
+      )
 
     val (actual, cmd) = MessageExecutor.execute(state, Confirm)
 
@@ -130,10 +154,18 @@ class MessageExecutorTests extends AnyFlatSpecLike with Matchers:
     val index = directions.indexOf(Direction.Forward)
 
     val state =
-      SelectingDirection(seed, Map(), 0, PlayerAction.Move, directions, index)
+      SelectingDirection(
+        seed,
+        Map(),
+        Map(),
+        0,
+        PlayerAction.Move,
+        directions,
+        index
+      )
 
     val action = Action.Move(0, Direction.Forward)
-    val expected = ExecutingAction(seed, Map(), action)
+    val expected = ExecutingAction(seed, Map(), Map(), action)
 
     val (actual, cmd) = MessageExecutor.execute(state, Confirm)
 
@@ -142,9 +174,10 @@ class MessageExecutorTests extends AnyFlatSpecLike with Matchers:
   }
 
   it should "on Cancel, transition to SelectingAction" in {
-    val state = SelectingDirection(seed, Map(), 0, PlayerAction.Move, Nil, 0)
+    val state =
+      SelectingDirection(seed, Map(), Map(), 0, PlayerAction.Move, Nil, 0)
 
-    val expected = SelectingAction(seed, Map(), 0, playerActions, 0)
+    val expected = SelectingAction(seed, Map(), Map(), 0, playerActions, 0)
 
     val (actual, cmd) = MessageExecutor.execute(state, Cancel)
 
@@ -158,10 +191,11 @@ class MessageExecutorTests extends AnyFlatSpecLike with Matchers:
     val player = Creature.make(0, "1", fighter, Row.Front)
     val monster = Creature.make(1, "1", Species.Goblin, Row.Back)
     val creatureMap = Map(0 -> player, 1 -> monster)
-    val state: MonsterActing = MonsterActing(seed, creatureMap, 1)
+    val state: MonsterActing = MonsterActing(seed, creatureMap, Map(), 1)
 
     val action = Action.Attack(1, 0, Species.goblinBow)
-    val expected: ExecutingAction = ExecutingAction(seed, creatureMap, action)
+    val expected: ExecutingAction =
+      ExecutingAction(seed, creatureMap, Map(), action)
 
     val (actual, cmd) = MessageExecutor.execute(state, MonsterAct)
 
@@ -175,14 +209,15 @@ class MessageExecutorTests extends AnyFlatSpecLike with Matchers:
     val player = Creature.make(0, "1", fighter, Row.Front)
     val creatureMap = Map(0 -> player)
     val action = Action.Wait(0)
-    val state: ExecutingAction = ExecutingAction(seed, creatureMap, action)
+    val state: ExecutingAction =
+      ExecutingAction(seed, creatureMap, Map(), action)
 
     val expectedCMap = state.creatureMap
       .focus(_.index(0).nextActionAt)
       .modify(_ + 25)
 
     val expected: Logging =
-      Logging(seed, expectedCMap, List(Log.WaitLog(player)))
+      Logging(seed, expectedCMap, Map(), List(Log.WaitLog(player)))
 
     val (actual, cmd) = MessageExecutor.execute(state, ExecuteAction)
 
@@ -197,10 +232,10 @@ class MessageExecutorTests extends AnyFlatSpecLike with Matchers:
     val monster =
       Creature.make(1, "1", Species.Goblin, Row.Front).copy(nextActionAt = 1000)
     val creatureMap = Map(0 -> player, 1 -> monster)
-    val state: Logging = Logging(seed, creatureMap, Nil)
+    val state: Logging = Logging(seed, creatureMap, Map(), Nil)
 
     val expected: SelectingAction =
-      SelectingAction(seed, creatureMap, 0, playerActions, 0)
+      SelectingAction(seed, creatureMap, Map(), 0, playerActions, 0)
 
     val (actual, cmd) = MessageExecutor.execute(state, Confirm)
 
@@ -213,9 +248,9 @@ class MessageExecutorTests extends AnyFlatSpecLike with Matchers:
       Creature.make(0, "1", fighter, Row.Front).copy(nextActionAt = 1000)
     val monster = Creature.make(1, "1", Species.Goblin, Row.Front)
     val creatureMap = Map(0 -> player, 1 -> monster)
-    val state: Logging = Logging(seed, creatureMap, Nil)
+    val state: Logging = Logging(seed, creatureMap, Map(), Nil)
 
-    val expected: MonsterActing = MonsterActing(seed, creatureMap, 1)
+    val expected: MonsterActing = MonsterActing(seed, creatureMap, Map(), 1)
 
     val (actual, cmd) = MessageExecutor.execute(state, Confirm)
 
@@ -227,9 +262,9 @@ class MessageExecutorTests extends AnyFlatSpecLike with Matchers:
     val monster = Creature.make(0, "1", Species.Goblin, Row.Back)
     val creatureMap = Map(0 -> monster)
     val action = Action.Wait(0)
-    val state: Logging = Logging(seed, creatureMap, Nil)
+    val state: Logging = Logging(seed, creatureMap, Map(), Nil)
 
-    val expected: Lost = Lost(seed, creatureMap)
+    val expected: Lost = Lost(seed, creatureMap, Map())
 
     val (actual, cmd) = MessageExecutor.execute(state, Confirm)
 
@@ -241,9 +276,9 @@ class MessageExecutorTests extends AnyFlatSpecLike with Matchers:
     val player = Creature.make(0, "1", fighter, Row.Front)
     val creatureMap = Map(0 -> player)
     val action = Action.Wait(0)
-    val state: Logging = Logging(seed, creatureMap, Nil)
+    val state: Logging = Logging(seed, creatureMap, Map(), Nil)
 
-    val expected: Won = Won(seed, creatureMap)
+    val expected: Won = Won(seed, creatureMap, Map())
 
     val (actual, cmd) = MessageExecutor.execute(state, Confirm)
 
