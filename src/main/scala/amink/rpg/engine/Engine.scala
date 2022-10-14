@@ -13,10 +13,11 @@ class Engine[State, Message](
 ):
   import Command.*
 
-  private def startIO(): Unit =
+  def startIO(msg: Message): Unit =
     document.onkeypress = key =>
       val msgOpt = decodeKey(key.key)
       msgOpt.foreach(sendMessage)
+    sendMessage(msg)
 
   def stopIO(): Unit =
     document.onkeypress = _ => ()

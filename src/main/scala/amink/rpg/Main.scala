@@ -14,24 +14,19 @@ import amink.canvasui.*
 
   val renderer = Renderer(canvas)
 
-  val model = {
+  val init = {
     import battle.model.*
     import util.*
     val weapon = Species.goblinBow
     val player1 = Creature.make(0, "1", Species.Fighter(weapon), Row.Front)
     val player2 = Creature.make(1, "2", Species.Fighter(weapon), Row.Back)
     val cMap = Map(0 -> player1, 1 -> player2)
-    State.Won(Seed.Cycle(Nil), cMap, Map())
+    State.LoadingSprites(Seed.Cycle(Nil), cMap, Map(), Map())
   }
 
-  val view = {
-    import battle.view.*
-    View.make(model)
+  val engine = {
+    import battle.*
+    BattleEngine(init, renderer)
   }
 
-  val component = view.component
-  canvas.width = component.width
-  canvas.height = component.height
-  component.renderIO(0, 0)(renderer)
-
-def msg = "I was compiled by Scala 3. :)"
+  engine.startIO()
