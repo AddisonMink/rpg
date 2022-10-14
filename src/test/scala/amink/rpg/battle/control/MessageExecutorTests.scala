@@ -5,6 +5,8 @@ import monocle.syntax.all.*
 import org.scalatest.flatspec.AnyFlatSpecLike
 import org.scalatest.matchers.should.Matchers
 
+import amink.canvasui.Sprite
+
 import amink.rpg.battle.model.*
 import amink.rpg.engine.Command
 import amink.rpg.util.Seed
@@ -18,6 +20,47 @@ class MessageExecutorTests extends AnyFlatSpecLike with Matchers:
   private val playerActions = PlayerAction.values.toList
   private val directions = Direction.values.toList
   private val fighter = Species.Fighter(Weapon("", Range.Close, 1, 0, 1))
+
+  behavior of "loadingSprites"
+
+  it should "on Start, load the next sprite if there are sources remaining" in {
+    val sprite = Sprite("test", null, 0, 0, 0, 0, 0, 0)
+    val sprites = Map("test" -> sprite)
+    val sources = Map("test" -> "path/to/img")
+    val state = LoadingSprites(seed, Map(), sprites, sources)
+
+    val (actual, cmd) = MessageExecutor.execute(state, Start)
+
+    actual shouldBe state
+    cmd shouldBe LoadSpriteAndSend(sprite, "path/to/img", SpriteLoaded(sprite))
+  }
+
+  it should "on Start, transition to the next turn if there are no sources remaining" in {
+    val player = Creature.make(0, "1", fighter, Row.Front)
+    val creatureMap = Map(0 -> player)
+    val state = LoadingSprites(seed, creatureMap, Map(), Map())
+
+    val expected = Won(seed, creatureMap, Map())
+
+    val (actual, cmd) = MessageExecutor.execute(state, Start)
+
+    actual shouldBe expected
+    cmd shouldBe Render
+  }
+
+  it should "on SpriteLoaded, remove source and emit Start" in {
+    val sprite = Sprite("test", null, 0, 0, 0, 0, 0, 0)
+    val sprites = Map("test" -> sprite)
+    val sources = Map("test" -> "path/to/img")
+    val state: LoadingSprites = LoadingSprites(seed, Map(), sprites, sources)
+
+    val expected = state.copy(spriteSources = state.spriteSources - "test")
+
+    val (actual, cmd) = MessageExecutor.execute(state, SpriteLoaded(sprite))
+
+    actual shouldBe expected
+    cmd shouldBe Send(Start)
+  }
 
   behavior of "selectingAction"
 

@@ -2,6 +2,7 @@ package amink.rpg.battle.control
 
 import amink.rpg.engine.Command
 import amink.rpg.battle.model.*
+import amink.canvasui.Sprite.apply
 
 object MessageExecutor:
   import Command.*
@@ -10,6 +11,7 @@ object MessageExecutor:
 
   def execute(state: State, message: Message): (State, Command[Message]) =
     state match
+      case s: LoadingSprites     => loadingSprites(s, message)
       case s: SelectingAction    => selectingAction(s, message)
       case s: SelectingDirection => selectingDirection(s, message)
       case s: SelectingMonster   => selectingMonster(s, message)
@@ -18,6 +20,26 @@ object MessageExecutor:
       case s: Logging            => logging(s, message)
       case s: Won                => (s, Noop)
       case s: Lost               => (s, Noop)
+
+  private def loadingSprites(
+      s: LoadingSprites,
+      msg: Message
+  ): (State, Command[Message]) = msg match
+    case Start =>
+      s.spriteSources.headOption match
+        case Some(name, src) =>
+          val sprite = s.sprites(name)
+          val cmd = LoadSpriteAndSend(sprite, src, SpriteLoaded(sprite))
+          (s, cmd)
+        case None => transitionToNextTurn(s)
+
+    case SpriteLoaded(sprite) =>
+      val sprites = s.sprites + (sprite.name -> sprite)
+      val sources = s.spriteSources - sprite.name
+      val state = s.copy(sprites = sprites, spriteSources = sources)
+      (state, Send(Start))
+
+    case _ => (s, Noop)
 
   private def selectingAction(
       s: SelectingAction,

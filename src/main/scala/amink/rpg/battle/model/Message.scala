@@ -13,6 +13,7 @@ enum Message:
   case Cancel
 
   // State Transitions
+  case Start
   case SpriteLoaded(sprite: Sprite)
   case MonsterAct
   case ExecuteAction
