@@ -1,28 +1,35 @@
 package amink.rpg
 
 import org.scalajs.dom.*
-import org.scalajs.dom.HTMLCanvasElement
 
 import amink.canvasui.*
+import amink.rpg.battle.view.View
+import org.scalajs.dom.HTMLImageElement
 
 @main def hello: Unit =
   val canvas = document
     .querySelector("canvas")
     .asInstanceOf[HTMLCanvasElement]
-  canvas.width = 500
-  canvas.height = 500
+  canvas.width = View.width
+  canvas.height = View.height
+
+  val goblinImage = document
+    .createElement("img")
+    .asInstanceOf[HTMLImageElement]
 
   val renderer = Renderer(canvas)
 
   val init = {
     import battle.model.*
     import util.*
-    val sprite = Sprite("goblin", null, 32, 32, 16, 16, 32, 32)
+    val sprite = Sprite("goblin", goblinImage, 32, 32, 16, 16, 32, 32)
     val src = "images/goblin.png"
     val weapon = Species.goblinBow
     val player1 = Creature.make(0, "1", Species.Fighter(weapon), Row.Front)
     val player2 = Creature.make(1, "2", Species.Fighter(weapon), Row.Back)
-    val cMap = Map(0 -> player1, 1 -> player2)
+    val monster1 = Creature.make(2, "1", Species.Goblin, Row.Front)
+    val monster2 = Creature.make(3, "2", Species.Goblin, Row.Back)
+    val cMap = Map(0 -> player1, 1 -> player2, 2 -> monster1, 3 -> monster2)
     val sprites = Map("goblin" -> sprite)
     val sources = Map("goblin" -> src)
     State.LoadingSprites(Seed.Cycle(Nil), cMap, sprites, sources)

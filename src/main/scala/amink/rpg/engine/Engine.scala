@@ -3,7 +3,6 @@ package amink.rpg.engine
 import org.scalajs.dom.*
 import scalajs.js.timers.*
 import amink.canvasui.Sprite
-import org.scalajs.dom.HTMLImageElement
 
 class Engine[State, Message](
     decodeKey: String => Option[Message],
@@ -40,9 +39,5 @@ class Engine[State, Message](
       src: String,
       msg: Message
   ): Unit =
-    val img = document
-      .createElement("img")
-      .asInstanceOf[HTMLImageElement]
-
-    img.onload = _ => sendMessage(msg)
-    img.src = src
+    sprite.img.onload = _ => sendMessage(msg)
+    sprite.img.src = src
