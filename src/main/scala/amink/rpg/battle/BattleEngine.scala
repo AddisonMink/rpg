@@ -19,7 +19,7 @@ class BattleEngine(init: State, r: Renderer):
   def startIO(): Unit = engine.startIO(Message.Start)
   def stopIO(): Unit = engine.stopIO()
 
-  private def decodeKey(key: String): Option[Message] = key match
+  private def decodeKey(key: String): Option[Message] = key.toLowerCase match
     case "w"     => Some(Message.Up)
     case "a"     => Some(Message.Left)
     case "s"     => Some(Message.Down)
