@@ -71,6 +71,11 @@ object Style:
     )
     (c.width, c.height)
 
+  def innerBoxSize(width: Int, height: Int): (Int, Int) =
+    val (w, h) = boxSize(width, height)
+    val (dw, dh) = (w - width, h - height)
+    (width - dw, height - dh)
+
   // Column Style
   val columnMargin: Int = 8
 
