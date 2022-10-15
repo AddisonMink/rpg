@@ -1,10 +1,10 @@
 package amink.rpg.battle.model
 
-enum PlayerAction(val typ: PlayerActionType):
-  case Attack extends PlayerAction(PlayerActionType.TargetsMonster)
-  case Move extends PlayerAction(PlayerActionType.NeedsDirection)
-  case Shove extends PlayerAction(PlayerActionType.TargetsMonster)
-  case Wait extends PlayerAction(PlayerActionType.TargetsSelf)
+enum PlayerAction(val name: String, val typ: PlayerActionType):
+  case Attack extends PlayerAction("attack", PlayerActionType.TargetsMonster)
+  case Move extends PlayerAction("move", PlayerActionType.NeedsDirection)
+  case Shove extends PlayerAction("shove", PlayerActionType.TargetsMonster)
+  case Wait extends PlayerAction("wait", PlayerActionType.TargetsSelf)
 
   def toSelfTargetingAction(id: Id): Action = this match
     case _ => Action.Wait(id)

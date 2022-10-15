@@ -61,7 +61,13 @@ object View:
     View(log, monsters, players, queue)
 
   private def logView(state: State): LogView =
-    val logs = state match
-      case State.Logging(_, _, _, logs) => logs
-      case _                            => Nil
-    LogView(logs)
+    state match
+      case State.Logging(_, _, _, logs) =>
+        val entries = logs.map(_.message)
+        LogView(entries, None)
+
+      case State.SelectingAction(_, _, _, _, _, i) =>
+        val entries = PlayerAction.values.toList.map(_.name)
+        LogView(entries, Some(i))
+
+      case _ => LogView(Nil, None)

@@ -5,17 +5,26 @@ import amink.canvasui.*
 import amink.rpg.battle.model.*
 
 final case class LogView(
-    logs: List[Log]
+    logs: List[String],
+    selected: Option[Int]
 ):
   import LogView.*
 
   def component: Component =
-    val entries = logs.map(entry)
+    val entries = logs.zipWithIndex
+      .map {
+        case (l, i) if selected.contains(i) => selectedEntry(l)
+        case (l, i)                         => entry(l)
+      }
+
     val col = Style.column(entries)
     Style.borderBox(col, innerWidth, innerHeight)
 
-  private def entry(log: Log): Component =
-    Style.text("- " + log.message)
+  private def entry(log: String): Component =
+    Style.text("- " + log)
+
+  private def selectedEntry(log: String): Component =
+    Style.text(log, highlighted = true)
 
 object LogView:
   val width: Int = View.width
