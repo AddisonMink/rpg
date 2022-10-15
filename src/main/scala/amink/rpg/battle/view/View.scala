@@ -70,4 +70,8 @@ object View:
         val entries = PlayerAction.values.toList.map(_.name)
         LogView(entries, Some(i))
 
+      case State.SelectingDirection(_, _, _, _, _, dirs, i) =>
+        val entries = dirs.map(_.name)
+        LogView(entries, Some(i))
+
       case _ => LogView(Nil, None)
