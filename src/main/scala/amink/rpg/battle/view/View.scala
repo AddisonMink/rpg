@@ -7,12 +7,14 @@ import amink.canvasui.ComponentUtils.AlignmentH
 
 final case class View(
     monsters: List[MonsterView],
-    players: List[PlayerView]
+    players: List[PlayerView],
+    queue: QueueView
 ):
   import View.*
 
   def component: Component =
-    Style.column(List(monsterRow, playerRow))
+    val col = Style.column(List(monsterRow, playerRow))
+    Style.row(List(col, queue.component))
 
   private def monsterRow: Component =
     val row = Style.row(monsters.map(_.component))
@@ -33,8 +35,8 @@ final case class View(
     )
 
 object View:
-  val playerRowWidth: Int = 4 * PlayerView.height + 3 * Style.rowMargin
-  val width: Int = playerRowWidth
+  val playerRowWidth: Int = 3 * PlayerView.width + 3 * Style.rowMargin
+  val width: Int = playerRowWidth + QueueView.width + Style.rowMargin
   val height: Int = PlayerView.height + MonsterView.height + Style.columnMargin
 
   def make(state: State): View =
@@ -44,4 +46,6 @@ object View:
     val players = state.creatureMap.players
       .map(PlayerView(_))
 
-    View(monsters, players)
+    val queue = QueueView(state.creatureMap.queue)
+
+    View(monsters, players, queue)
