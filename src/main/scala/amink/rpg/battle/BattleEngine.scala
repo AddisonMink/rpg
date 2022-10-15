@@ -6,6 +6,7 @@ import amink.rpg.engine.*
 import model.*
 import view.*
 import amink.rpg.battle.control.MessageExecutor
+import amink.canvasui.Color
 
 class BattleEngine(init: State, r: Renderer):
 
@@ -29,4 +30,5 @@ class BattleEngine(init: State, r: Renderer):
     case _       => None
 
   private def renderIO(r: Renderer)(state: State): Unit =
+    r.clearIO(Color.black)
     View.make(state).component.renderIO(0, 0)(r)
