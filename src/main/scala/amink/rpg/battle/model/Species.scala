@@ -67,6 +67,14 @@ enum Species(
       )
 
 object Species:
+  val fighterSword = Weapon(
+    name = "sword",
+    range = Range.Close,
+    strengthMultiplier = 1,
+    damageBonus = 0,
+    actionCostMultiplier = 1
+  )
+
   val goblinBow = Weapon(
     name = "bow",
     range = Range.Ranged,

@@ -58,7 +58,7 @@ object MessageExecutor:
           transitionToSelectingDirection(s, playerAction, s.id)
 
         case PlayerAction.Shove =>
-          transitionToSelectingMonster(s, playerAction, s.id, Some(Range.Close))
+          transitionToSelectingMonster(s, playerAction, s.id)
 
         case PlayerAction.Wait =>
           val action = playerAction.toSelfTargetingAction(s.id)
@@ -150,42 +150,29 @@ object MessageExecutor:
       s: State,
       id: Id
   ): (State, Command[Message]) =
-    val targets = s.creatureMap.validWeaponTargets(id).nonEmpty
-    val directions = s.creatureMap.validDirections(id).nonEmpty
-    val shoveTargets = s.creatureMap.validTargets(id, Range.Close).nonEmpty
-
-    val attackOpt = if targets then Some(PlayerAction.Attack) else None
-    val moveOpt = if directions then Some(PlayerAction.Move) else None
-    val shoveOpt = if shoveTargets then Some(PlayerAction.Shove) else None
-    val waitOpt = Some(PlayerAction.Wait)
-    val actions = List(attackOpt, moveOpt, shoveOpt, waitOpt).flatten
-
-    val state =
-      SelectingAction(s.seed, s.creatureMap, s.sprites, id, actions, 0)
+    val state = makeSelectingAction(s.seed, s.creatureMap, s.sprites, id)
     (state, Render)
 
   private def transitionToSelectingMonster(
       s: State,
       a: PlayerAction,
-      id: Id,
-      range: Option[Range] = None
+      id: Id
   ): (State, Command[Message]) =
-    val monsters = range match
-      case Some(r) => s.creatureMap.validTargets(id, r)
-      case None    => s.creatureMap.validWeaponTargets(id)
-    val state =
-      SelectingMonster(s.seed, s.creatureMap, s.sprites, id, a, monsters, 0)
-    (state, Render)
+    val stateOpt = makeSelectingMonster(s.seed, s.creatureMap, s.sprites, id, a)
+    stateOpt match
+      case Some(state) => (state, Render)
+      case None        => (s, Noop)
 
   private def transitionToSelectingDirection(
       s: State,
       a: PlayerAction,
       id: Id
   ): (State, Command[Message]) =
-    val dirs = s.creatureMap.validDirections(id)
-    val state =
-      SelectingDirection(s.seed, s.creatureMap, s.sprites, id, a, dirs, 0)
-    (state, Render)
+    val stateOpt =
+      makeSelectingDirection(s.seed, s.creatureMap, s.sprites, id, a)
+    stateOpt match
+      case Some(state) => (state, Render)
+      case None        => (s, Noop)
 
   private def transitionToExecutingAction(
       s: State,
