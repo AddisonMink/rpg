@@ -10,7 +10,7 @@ object MessageExecutor:
   import State.*
 
   def execute(state: State, message: Message): (State, Command[Message]) =
-    state match
+    val r = state match
       case s: LoadingSprites     => loadingSprites(s, message)
       case s: SelectingAction    => selectingAction(s, message)
       case s: SelectingDirection => selectingDirection(s, message)
@@ -20,6 +20,8 @@ object MessageExecutor:
       case s: Logging            => logging(s, message)
       case s: Won                => (s, Noop)
       case s: Lost               => (s, Noop)
+    println(r)
+    r
 
   private def loadingSprites(
       s: LoadingSprites,
@@ -61,7 +63,7 @@ object MessageExecutor:
           transitionToSelectingMonster(s, playerAction, s.id)
 
         case PlayerAction.Wait =>
-          val action = playerAction.toSelfTargetingAction(s.id)
+          val action = Action.Wait(s.id)
           transitionToExecutingAction(s, action)
 
     case _ => (s, Noop)
@@ -76,7 +78,10 @@ object MessageExecutor:
 
       case Confirm =>
         val dir = s.directions(s.index)
-        val action = s.action.toDirectionalAction(s.id, dir)
+        val action = s.action match
+          case PlayerAction.Move => Action.Move(s.id, dir)
+          case _                 => Action.Wait(s.id)
+
         transitionToExecutingAction(s, action)
 
       case Cancel => transitionToSelectingAction(s, s.id)
@@ -93,7 +98,13 @@ object MessageExecutor:
 
       case Confirm =>
         val monsterId = s.monsters(s.index)
-        val action = s.action.toMonsterTargetingAction(s.id, monsterId)
+        val action = s.action match
+          case PlayerAction.Attack =>
+            val weapon = s.creatureMap(s.id).species.weapon
+            Action.Attack(s.id, monsterId, weapon)
+          case PlayerAction.Shove => Action.Shove(s.id, monsterId)
+          case _                  => Action.Wait(s.id)
+
         transitionToExecutingAction(s, action)
 
       case _ => (s, Noop)
