@@ -24,7 +24,7 @@ import org.scalajs.dom.HTMLImageElement
     import util.*
     val sprite = Sprite("goblin", goblinImage, 32, 32, 16, 16, 32, 32)
     val src = "images/goblin.png"
-    val weapon = Species.goblinBow
+    val weapon = Weapon("sword", Range.Close, 1, 0, 1)
     val player1 = Creature.make(0, "1", Species.Fighter(weapon), Row.Front)
     val player2 = Creature.make(1, "2", Species.Fighter(weapon), Row.Back)
     val monster1 = Creature.make(2, "1", Species.Goblin, Row.Front)

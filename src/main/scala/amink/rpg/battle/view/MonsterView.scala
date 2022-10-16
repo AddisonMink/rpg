@@ -6,7 +6,8 @@ import amink.rpg.battle.model.*
 
 final case class MonsterView(
     monster: Creature,
-    sprite: Sprite
+    sprite: Sprite,
+    selected: Boolean = false
 ):
   import MonsterView.*
   import ComponentUtils.AlignmentH
@@ -26,6 +27,12 @@ final case class MonsterView(
       case Row.Back => sprite
 
     val frame = ComponentUtils.spriteFrame(realSprite, (0, 0))
+
+    val col = selected match
+      case true =>
+        val marker = Style.text("V", Style.FontStyle.SmallHeader(width))
+        Style.column(List(marker, frame))
+      case false => frame
 
     ComponentUtils.box(
       frame,

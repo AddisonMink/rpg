@@ -50,8 +50,7 @@ object View:
   def make(state: State): View =
     val log = logView(state)
 
-    val monsters = state.creatureMap.monsters
-      .map(m => MonsterView.make(state, m.id))
+    val monsters = monsterViews(state)
 
     val players = state.creatureMap.players
       .map(PlayerView(_))
@@ -66,8 +65,8 @@ object View:
         val entries = logs.map(_.message)
         LogView(entries, None)
 
-      case State.SelectingAction(_, _, _, _, _, i) =>
-        val entries = PlayerAction.values.toList.map(_.name)
+      case State.SelectingAction(_, _, _, _, as, i) =>
+        val entries = as.map(_.name)
         LogView(entries, Some(i))
 
       case State.SelectingDirection(_, _, _, _, _, dirs, i) =>
@@ -75,3 +74,16 @@ object View:
         LogView(entries, Some(i))
 
       case _ => LogView(Nil, None)
+
+  private def monsterViews(state: State): List[MonsterView] =
+    val selected = state match
+      case s: State.SelectingMonster => Some(s.monsters(s.index))
+      case _                         => None
+
+    state.creatureMap.monsters.map(m =>
+      MonsterView(
+        m,
+        state.sprites(m.species.name),
+        selected.contains(m.id)
+      )
+    )
