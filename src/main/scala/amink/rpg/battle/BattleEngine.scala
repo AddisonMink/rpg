@@ -26,7 +26,7 @@ class BattleEngine(init: State, r: Renderer):
     case "s"     => Some(Message.Down)
     case "d"     => Some(Message.Right)
     case "enter" => Some(Message.Confirm)
-    case "space" => Some(Message.Cancel)
+    case "'" => Some(Message.Cancel)
     case _       => None
 
   private def renderIO(r: Renderer)(state: State): Unit =
