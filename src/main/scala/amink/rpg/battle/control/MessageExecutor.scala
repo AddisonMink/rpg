@@ -150,7 +150,16 @@ object MessageExecutor:
       s: State,
       id: Id
   ): (State, Command[Message]) =
-    val actions = PlayerAction.values.toList
+    val targets = s.creatureMap.validWeaponTargets(id).nonEmpty
+    val directions = s.creatureMap.validDirections(id).nonEmpty
+    val shoveTargets = s.creatureMap.validTargets(id, Range.Close).nonEmpty
+
+    val attackOpt = if targets then Some(PlayerAction.Attack) else None
+    val moveOpt = if directions then Some(PlayerAction.Move) else None
+    val shoveOpt = if shoveTargets then Some(PlayerAction.Shove) else None
+    val waitOpt = Some(PlayerAction.Wait)
+    val actions = List(attackOpt, moveOpt, shoveOpt, waitOpt).flatten
+
     val state =
       SelectingAction(s.seed, s.creatureMap, s.sprites, id, actions, 0)
     (state, Render)

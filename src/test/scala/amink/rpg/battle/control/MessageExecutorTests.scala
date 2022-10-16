@@ -217,10 +217,14 @@ class MessageExecutorTests extends AnyFlatSpecLike with Matchers:
   }
 
   it should "on Cancel, transition to SelectingAction" in {
-    val state =
-      SelectingDirection(seed, Map(), Map(), 0, PlayerAction.Move, Nil, 0)
+    val player = Creature.make(0, "1", fighter, Row.Front)
+    val cMap = Map(0 -> player)
 
-    val expected = SelectingAction(seed, Map(), Map(), 0, playerActions, 0)
+    val state =
+      SelectingDirection(seed, cMap, Map(), 0, PlayerAction.Move, Nil, 0)
+
+    val actions = List(PlayerAction.Move, PlayerAction.Wait)
+    val expected = SelectingAction(seed, cMap, Map(), 0, actions, 0)
 
     val (actual, cmd) = MessageExecutor.execute(state, Cancel)
 
