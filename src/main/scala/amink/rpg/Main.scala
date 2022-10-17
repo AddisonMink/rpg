@@ -32,7 +32,8 @@ import org.scalajs.dom.HTMLImageElement
     val cMap = Map(0 -> player1, 1 -> player2, 2 -> monster1, 3 -> monster2)
     val sprites = Map("goblin" -> sprite)
     val sources = Map("goblin" -> src)
-    State.LoadingSprites(Seed.Cycle(Nil), cMap, sprites, sources)
+    val seed = Seed.Rand(scala.util.Random().nextInt)
+    State.LoadingSprites(seed, cMap, sprites, sources)
   }
 
   val engine = {
