@@ -10,7 +10,7 @@ object MessageExecutor:
   import State.*
 
   def execute(state: State, message: Message): (State, Command[Message]) =
-    val r = state match
+    state match
       case s: LoadingSprites     => loadingSprites(s, message)
       case s: SelectingAction    => selectingAction(s, message)
       case s: SelectingDirection => selectingDirection(s, message)
@@ -20,8 +20,6 @@ object MessageExecutor:
       case s: Logging            => logging(s, message)
       case s: Won                => (s, Noop)
       case s: Lost               => (s, Noop)
-    println(r)
-    r
 
   private def loadingSprites(
       s: LoadingSprites,

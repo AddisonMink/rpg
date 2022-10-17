@@ -14,6 +14,22 @@ final case class MonsterView(
   import ComponentUtils.AlignmentV
 
   def component: Component =
+    Style.column(List(marker, image))
+
+  private def marker: Component =
+    val content = selected match
+      case false => Component.Empty
+      case true  => Style.text("V")
+
+    ComponentUtils.box(
+      content,
+      width,
+      markerHeight,
+      alignH = AlignmentH.Center,
+      alignV = AlignmentV.Center
+    )
+
+  private def image: Component =
     val alignV = monster.row match
       case Row.Front => AlignmentV.Bottom
       case Row.Back  => AlignmentV.Top
@@ -28,23 +44,22 @@ final case class MonsterView(
 
     val frame = ComponentUtils.spriteFrame(realSprite, (0, 0))
 
-    val col = selected match
-      case true =>
-        val marker = Style.text("V", Style.FontStyle.SmallHeader(width))
-        Style.column(List(marker, frame))
-      case false => frame
-
     ComponentUtils.box(
       frame,
       width,
-      height,
+      spriteBoxHeight,
       alignH = AlignmentH.Center,
       alignV = AlignmentV.Center
     )
 
 object MonsterView:
   val width: Int = 60
-  val height: Int = 100
+  val spriteBoxHeight: Int = 100
+  val markerHeight: Int = 25
+
+  val height: Int = spriteBoxHeight
+    + markerHeight
+    + Style.columnMargin
 
   def make(state: State, id: Id): MonsterView =
     val creature = state.creatureMap(id)

@@ -49,14 +49,12 @@ object View:
 
   def make(state: State): View =
     val log = logView(state)
-
     val monsters = monsterViews(state)
 
     val players = state.creatureMap.players
       .map(PlayerView(_))
 
     val queue = QueueView(state.creatureMap.queue)
-
     View(log, monsters, players, queue)
 
   private def logView(state: State): LogView =
@@ -79,7 +77,7 @@ object View:
     val selected = state match
       case s: State.SelectingMonster => Some(s.monsters(s.index))
       case _                         => None
-
+      
     state.creatureMap.monsters.map(m =>
       MonsterView(
         m,
